@@ -1,5 +1,6 @@
 require("dotenv").config();
 import db from "../models";
+import _ from "lodash";
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 
@@ -151,7 +152,8 @@ let getDetailDoctorByIdService = (idInput) => {
 let bulkCreateSchedule = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-            if (!data.arraySchedule) {
+
+            if (!data.arraySchedule || !data.doctorId || !data.date) {
                 resolve({
                     errorCode: 1,
                     errorMessage: "Missing require param !"
@@ -166,7 +168,38 @@ let bulkCreateSchedule = (data) => {
                     })
                 }
 
-                await db.Schedule.bulkCreate(schedule);
+                // get all exist data
+                let existing = await db.Schedule.findAll(
+                    {
+                        where: { doctorId: data.doctorId, date: data.date },
+                        attributes: ['timeType', 'date', 'doctorId', 'maxNumber'],
+                        raw: true
+
+                    }
+                );
+
+                // convert date
+                if (existing && existing.length > 0) {
+                    existing = existing.map((item) => {
+                        item.date = new Date(item.date).getTime();
+                        return item;
+                    })
+                }
+
+                // compare different
+                let toCreate = _.differenceWith(schedule, existing, (a, b) => {
+                    return a.timeType === b.timeType && a.date === b.date;
+                });
+
+
+                // create data
+                if (toCreate && toCreate.length > 0) {
+                    await db.Schedule.bulkCreate(toCreate);
+
+                }
+
+                console.log("hoi dan it to schedule", toCreate);
+
 
                 resolve({
                     errorCode: 0,
