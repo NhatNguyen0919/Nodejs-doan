@@ -33,6 +33,9 @@ let initWebRoutes = (app) => {
     // DOCTOR Controller
 
 
+    // Schedule Controller
+    router.post('/api/bulk-create-schedule', doctorsController.bulkCreateSchedule);
+
     return app.use("/", router);
 }
 

@@ -1,5 +1,7 @@
+require("dotenv").config();
 import db from "../models";
 
+const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 
 let getTopDoctorHome = (limit) => {
     return new Promise(async (resolve, reject) => {
@@ -145,9 +147,43 @@ let getDetailDoctorByIdService = (idInput) => {
     })
 }
 
+
+let bulkCreateSchedule = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.arraySchedule) {
+                resolve({
+                    errorCode: 1,
+                    errorMessage: "Missing require param !"
+                })
+            }
+            else {
+                let schedule = data.arraySchedule;
+                if (schedule && schedule.length > 0) {
+                    schedule = schedule.map(item => {
+                        item.maxNumber = MAX_NUMBER_SCHEDULE;
+                        return item;
+                    })
+                }
+
+                await db.Schedule.bulkCreate(schedule);
+
+                resolve({
+                    errorCode: 0,
+                    errorMessage: "OK"
+                })
+            }
+        } catch (error) {
+            console.log(error);
+            reject(error);
+        }
+    })
+}
+
 module.exports = {
     getTopDoctorHome,
     getAllDoctor,
     saveDetailInforDoctor,
     getDetailDoctorByIdService
+    , bulkCreateSchedule
 }
