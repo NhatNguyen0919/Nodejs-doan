@@ -56,13 +56,18 @@ let saveDetailInforDoctor = (inputData) => {
     return new Promise(async (resolve, reject) => {
         try {
             if (!inputData.doctorId || !inputData.contentHTML
-                || !inputData.contentMarkdown || !inputData.action) {
+                || !inputData.contentMarkdown || !inputData.action
+                || !inputData.selectedPrice || !inputData.selectedPayment
+                || !inputData.selectedProvince || !inputData.nameClinic
+                || !inputData.addressClinic || !inputData.note
+            ) {
                 resolve({
                     errorCode: 1,
                     errorMessage: "Missing parameter",
                 })
             }
             else {
+                // upsert to markdown table
                 if (inputData.action === 'CREATE') {
                     await db.Markdown.create({
                         contentHTML: inputData.contentHTML,
@@ -86,6 +91,37 @@ let saveDetailInforDoctor = (inputData) => {
                         doctorMarkdown.updateAt = new Date();
                         await doctorMarkdown.save();
                     }
+                }
+
+                // upsert to Doctor_infor table
+                let doctorInfor = await db.Doctor_Infor.findOne({
+                    where: {
+                        doctorID: inputData.doctorId,
+                    },
+                    raw: false
+                })
+
+                if (doctorInfor) {
+                    // update
+                    doctorInfor.doctorID = inputData.doctorId;
+                    doctorInfor.priceID = inputData.selectedPrice;
+                    doctorInfor.provinceID = inputData.selectedProvince;
+                    doctorInfor.paymentID = inputData.selectedPayment;
+                    doctorInfor.note = inputData.note;
+                    doctorInfor.addressClinic = inputData.addressClinic;
+                    doctorInfor.nameClinic = inputData.nameClinic;
+                    await doctorInfor.save();
+                } else {
+                    // create
+                    await db.Doctor_Infor.create({
+                        doctorID: inputData.doctorId,
+                        priceID: inputData.selectedPrice,
+                        provinceID: inputData.selectedProvince,
+                        paymentID: inputData.selectedPayment,
+                        note: inputData.note,
+                        addressClinic: inputData.addressClinic,
+                        nameClinic: inputData.nameClinic,
+                    })
                 }
 
                 resolve({
@@ -178,17 +214,9 @@ let bulkCreateSchedule = (data) => {
                     }
                 );
 
-                // convert date
-                if (existing && existing.length > 0) {
-                    existing = existing.map((item) => {
-                        item.date = new Date(item.date).getTime();
-                        return item;
-                    })
-                }
-
                 // compare different
                 let toCreate = _.differenceWith(schedule, existing, (a, b) => {
-                    return a.timeType === b.timeType && a.date === b.date;
+                    return a.timeType === b.timeType && +a.date === +b.date;
                 });
 
 
@@ -226,7 +254,12 @@ let getScheduleByDate = (doctorId, date) => {
                     where: {
                         doctorId: doctorId,
                         date: date
-                    }
+                    },
+                    include: [
+                        { model: db.Allcode, as: 'timeTypeData', attributes: ['valueEn', 'valueVi'] },
+                    ],
+                    raw: false,
+                    nest: true
                 })
                 if (!data) {
                     return data = [];
