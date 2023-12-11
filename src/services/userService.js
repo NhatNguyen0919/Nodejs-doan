@@ -137,9 +137,6 @@ const createNewUser = (data) => {
                     errorMsg: "OK"
                 });
             }
-
-
-
         } catch (error) {
             reject(error)
         }
@@ -195,13 +192,7 @@ const updateUserData = (data) => {
                 user.image = data.avatar;
 
                 await user.save()
-                // await db.User.save({
-                //     firstName: data.firstName,
-                //     lastName: data.lastName,
-                //     address: data.address,
-                //     phoneNumber: data.phoneNumber
-                // });
-
+                
                 resolve({
                     errorCode: 0,
                     Msg: 'Update success !'

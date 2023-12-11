@@ -52,6 +52,7 @@ let getAllDoctor = () => {
     })
 }
 
+
 let saveDetailInforDoctor = (inputData) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -194,6 +195,38 @@ let getDetailDoctorByIdService = (idInput) => {
         } catch (error) {
             reject(error);
         }
+    })
+}
+let getAllDetailDoctorService = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let doctors = await db.User.findAll({
+                where: { roleId: "R2" },
+                attributes: {
+                    exclude: ['password', 'image', 'createdAt', 'firstName', 'lastName', 'phoneNumber']
+                },
+                include: [
+                    {
+                        model: db.Markdown,
+                        attributes: [
+                            'description',
+                            'contentHTML',
+                            'contentMarkdown'
+                        ],
+                    },
+                ],
+                raw: false,
+                nest: true
+            })
+
+            resolve({
+                errorCode: 0,
+                data: doctors
+            })
+        } catch (error) {
+            reject(error);
+        }
+    
     })
 }
 
@@ -396,5 +429,6 @@ module.exports = {
     bulkCreateSchedule,
     getScheduleByDate,
     getExtraInforDoctor,
-    getProfileDoctor
+    getProfileDoctor,
+    getAllDetailDoctorService
 }

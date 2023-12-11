@@ -1,6 +1,12 @@
 require("dotenv").config();
 import db from "../models";
 import { sendSimpleEmail } from "./EmailService";
+import { v4 as uuidv4 } from 'uuid';
+
+let buildURLEmail = (doctorId, token) => {
+    let result = `${process.env.URL_REACT}/verify-booking?token=${token}&&doctor-id=${doctorId}`;
+    return result;
+}
 
 let postBookAppointment = (data) => {
     return new Promise(async (resolve, reject) => {
@@ -11,6 +17,7 @@ let postBookAppointment = (data) => {
                     errorMessage: "Missing parameter",
                 })
             } else {
+                let token = uuidv4();
 
                 resolve({
                     data,
@@ -24,7 +31,7 @@ let postBookAppointment = (data) => {
                     time: data.timeString,
                     doctorName: data.doctorName,
                     language: data.language,
-                    redirectLink: "https://www.facebook.com/"
+                    redirectLink: buildURLEmail(data.doctorId, token)
                 })
                 // upsert patient
                 let user = await db.User.findOrCreate({
@@ -45,12 +52,52 @@ let postBookAppointment = (data) => {
                             patientId: user[0].id,
                             date: data.date,
                             timeType: data.timeType,
-                            dayBooking: data.dayBooking
+                            dayBooking: data.dayBooking,
+                            token: token
                         }
                     })
                 }
 
-                
+
+            }
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
+let postVerifyBookAppointment = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.token || !data.doctorId) {
+                resolve({
+                    errorCode: 1,
+                    errorMessage: "Missing parameter",
+                })
+            } else {
+                let appointment = await db.Booking.findOne({
+                    where: {
+                        doctorId: data.doctorId,
+                        token: data.token,
+                        statusId: 'S1'
+                    },
+                    raw: false
+                })
+
+                if (appointment) {
+                    appointment.statusId = 'S2'
+                    await appointment.save();
+                    
+                    resolve({
+                        errorCode: 0,
+                        errorMessage: "Update successful !"
+                    })
+                } else {
+                    resolve({
+                        errorCode: 2,
+                        errorMessage: "Appointment has already been activated or does not exist"
+                    })
+                }
             }
         } catch (error) {
             reject(error);
@@ -59,5 +106,6 @@ let postBookAppointment = (data) => {
 }
 
 module.exports = {
-    postBookAppointment
+    postBookAppointment,
+    postVerifyBookAppointment
 }
