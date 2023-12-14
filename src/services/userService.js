@@ -192,7 +192,7 @@ const updateUserData = (data) => {
                 user.image = data.avatar;
 
                 await user.save()
-                
+
                 resolve({
                     errorCode: 0,
                     Msg: 'Update success !'

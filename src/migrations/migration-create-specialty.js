@@ -7,7 +7,7 @@ module.exports = {
         // patientId: DataTypes.INTEGER,
         // date: DataTypes.DATE,
         // timeType: DataTypes.BOOLEAN,
-        await queryInterface.createTable('specialtys', {
+        await queryInterface.createTable('Specialties', {
             id: {
                 allowNull: false,
                 autoIncrement: true,
@@ -37,6 +37,6 @@ module.exports = {
         });
     },
     async down(queryInterface, Sequelize) {
-        await queryInterface.dropTable('specialtys');
+        await queryInterface.dropTable('Specialties');
     }
 };

@@ -1,4 +1,5 @@
 require("dotenv").config();
+import { reject } from "lodash";
 import db from "../models";
 
 
@@ -28,9 +29,30 @@ let createSpecialtyService = (data) => {
     })
 }
 
+let getAllSpecialtyService = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let data = await db.Specialty.findAll();
+            if (data && data.length > 0) {
+                data.map(item => {
+                    item.image = new Buffer(item.image, 'base64').toString('binary');
+                    return item;
+                })
+            }
+            resolve({
+                errorCode: 0,
+                errorMessage: "OK",
+                data
+            })
+        } catch (error) {
+            reject(error);
+        }
+    })
+}
+
 
 
 module.exports = {
     createSpecialtyService,
-
+    getAllSpecialtyService,
 }

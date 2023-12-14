@@ -226,7 +226,7 @@ let getAllDetailDoctorService = () => {
         } catch (error) {
             reject(error);
         }
-    
+
     })
 }
 

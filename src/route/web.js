@@ -46,6 +46,7 @@ let initWebRoutes = (app) => {
     router.post('/api/verify-booking', patientController.postVerifyBookAppointment);
 
     router.post('/api/create-specialty', specialtyController.createSpecialty);
+    router.get('/api/get-all-specialty', specialtyController.getAllSpecialty);
 
     return app.use("/", router);
 }
