@@ -1,6 +1,6 @@
 require("dotenv").config();
 import db from "../models";
-import { sendSimpleEmail } from "./EmailService";
+import { sendSimpleEmail } from "./emailService";
 import { v4 as uuidv4 } from 'uuid';
 
 let buildURLEmail = (doctorId, token) => {
@@ -87,7 +87,7 @@ let postVerifyBookAppointment = (data) => {
                 if (appointment) {
                     appointment.statusId = 'S2'
                     await appointment.save();
-                    
+
                     resolve({
                         errorCode: 0,
                         errorMessage: "Update successful !"
@@ -105,7 +105,42 @@ let postVerifyBookAppointment = (data) => {
     })
 }
 
+let getDateBooking = (token) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!token) {
+                resolve({
+                    errorCode: 1,
+                    errorMessage: "Missing require param !"
+                })
+            }
+            else {
+                let res = await db.Booking.findOne({
+                    where: {
+                        token: token,
+                    },
+                    include: [
+                        { model: db.Allcode, as: 'timeTypeData2', attributes: ['valueEn', 'valueVi'] },
+
+                    ],
+
+                    raw: false
+
+                })
+                resolve({
+                    errorCode: 0,
+                    data: res
+                })
+            }
+        } catch (error) {
+            reject(error);
+        }
+
+    })
+}
+
 module.exports = {
     postBookAppointment,
-    postVerifyBookAppointment
+    postVerifyBookAppointment,
+    getDateBooking
 }

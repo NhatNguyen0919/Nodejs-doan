@@ -14,19 +14,25 @@ module.exports = {
                 primaryKey: true,
                 type: Sequelize.INTEGER
             },
-            doctorID: {
+            doctorId: {
                 type: Sequelize.INTEGER,
                 allowNull: false,
+            },
+            clinicId: {
+                type: Sequelize.INTEGER,
+            },
+            specialtyId: {
+                type: Sequelize.INTEGER,
             },
             priceID: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            provinceID: {
+            provinceId: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            paymentID: {
+            paymentId: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
