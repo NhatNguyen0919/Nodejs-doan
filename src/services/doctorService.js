@@ -1,6 +1,7 @@
 require("dotenv").config();
 import db from "../models";
 import _ from "lodash";
+import emailService from '../services/emailService';
 
 const MAX_NUMBER_SCHEDULE = process.env.MAX_NUMBER_SCHEDULE;
 
@@ -128,6 +129,7 @@ let saveDetailInforDoctor = (inputData) => {
                     doctorInfor.addressClinic = inputData.addressClinic;
                     doctorInfor.nameClinic = inputData.nameClinic;
                     doctorInfor.specialtyId = inputData.specialtyId;
+                    doctorInfor.clinicId = inputData.clinicId;
                     await doctorInfor.save();
                 } else {
                     // create
@@ -229,10 +231,23 @@ let getAllDetailDoctorService = () => {
                         model: db.Markdown,
                         attributes: [
                             'description',
-                            'contentHTML',
-                            'contentMarkdown'
                         ],
                     },
+                    {
+                        model: db.Doctor_Infor,
+                        attributes: {
+                            exclude: ['id', 'doctorId', 'clinicId', 'priceId', 'paymentId', 'addressClinic', 'nameClinic', 'note',]
+                        },
+                        include: [
+                            { model: db.Specialty, as: 'specialtyTypeData', attributes: ['id', 'name'] },
+                            { model: db.Allcode, as: 'provinceTypeData', attributes: ['valueEn', 'valueVi'] },
+
+                        ]
+
+                    },
+
+
+
                 ],
                 raw: false,
                 nest: true
@@ -440,6 +455,90 @@ let getProfileDoctor = (doctorId) => {
     })
 }
 
+let getListPatientsService = (doctorId, date) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!doctorId || !date) {
+                resolve({
+                    errorCode: 1,
+                    errorMessage: "Missing required parameters"
+                })
+            } else {
+                let data = await db.Booking.findAll({
+                    where: {
+                        statusId: 'S2',
+                        doctorId: doctorId,
+                        dayBooking: date
+                    },
+                    include: [
+                        {
+                            model: db.User,
+                            as: 'patientData',
+                            attributes: ['email', 'firstName', 'address', 'reason', 'gender'],
+                            include: [
+                                { model: db.Allcode, as: 'genderData', attributes: ['valueEn', 'valueVi'] },
+                            ]
+                        },
+                        {
+                            model: db.Allcode, as: 'timeTypeData2', attributes: ['valueEn', 'valueVi'],
+
+                        }
+
+
+                    ],
+                    raw: false,
+                    nest: true
+                })
+                resolve({
+                    errorCode: 0,
+                    data: data
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
+let sendPrescriptionService = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.email || !data.doctorId || !data.patientId || !data.timeType) {
+                resolve({
+                    errorCode: 1,
+                    errorMessage: "Missing required parameters"
+                })
+            } else {
+                // update patient status
+                let appointment = await db.Booking.findOne({
+                    where: {
+                        doctorId: data.doctorId,
+                        patientId: data.patientId,
+                        timeType: data.timeType,
+                        statusId: 'S2'
+                    },
+                    raw: false
+                })
+
+                if (appointment) {
+                    appointment.statusId = 'S3';
+                    await appointment.save();
+                }
+
+                // send email
+                console.log("check from server:", data);
+                await emailService.sendAttachment(data)
+                resolve({
+                    errorCode: 0,
+                    errorMessage: 'OK'
+                })
+            }
+        } catch (error) {
+            reject(error)
+        }
+    })
+}
+
 module.exports = {
     getTopDoctorHome,
     getAllDoctor,
@@ -449,5 +548,7 @@ module.exports = {
     getScheduleByDate,
     getExtraInforDoctor,
     getProfileDoctor,
-    getAllDetailDoctorService
+    getAllDetailDoctorService,
+    getListPatientsService,
+    sendPrescriptionService
 }

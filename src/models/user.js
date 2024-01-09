@@ -13,10 +13,10 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       User.belongsTo(models.Allcode, { foreignKey: 'positionId', targetKey: 'keyMap', as: 'positionData' });
       User.belongsTo(models.Allcode, { foreignKey: 'gender', targetKey: 'keyMap', as: 'genderData' });
-      User.hasOne(models.Markdown, { foreignKey: 'doctorId' })
-      User.hasOne(models.Doctor_Infor, { foreignKey: 'doctorId' })
-
+      User.hasOne(models.Markdown, { foreignKey: 'doctorId' });
+      User.hasOne(models.Doctor_Infor, { foreignKey: 'doctorId' });
       User.hasMany(models.Schedule, { foreignKey: 'doctorId', as: 'doctorData' });
+      User.hasMany(models.Booking, { foreignKey: 'patientId', as: 'patientData' });
 
     }
   };
@@ -26,9 +26,10 @@ module.exports = (sequelize, DataTypes) => {
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     address: DataTypes.STRING,
+    reason: DataTypes.TEXT,
     phoneNumber: DataTypes.STRING,
     gender: DataTypes.STRING,
-    image: DataTypes.STRING,
+    image: DataTypes.TEXT,
     roleId: DataTypes.STRING,
     positionId: DataTypes.STRING,
   }, {

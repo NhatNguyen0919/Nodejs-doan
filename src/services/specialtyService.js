@@ -1,5 +1,5 @@
 require("dotenv").config();
-import { reject } from "lodash";
+// import { reject } from "lodash";
 import db from "../models";
 
 
@@ -12,16 +12,38 @@ let createSpecialtyService = (data) => {
                     errorMessage: "Missing parameter",
                 })
             } else {
-                await db.Specialty.create({
-                    name: data.name,
-                    image: data.imageBase64,
-                    descriptionHTML: data.descriptionHTML,
-                    descriptionMarkdown: data.descriptionMarkdown
-                })
-                resolve({
-                    errorCode: 0,
-                    errorMessage: "Ok",
-                })
+                if (data.hasOldData === false) {
+                    await db.Specialty.create({
+                        name: data.name,
+                        image: data.imageBase64,
+                        descriptionHTML: data.descriptionHTML,
+                        descriptionMarkdown: data.descriptionMarkdown
+                    })
+                    resolve({
+                        errorCode: 0,
+                        errorMessage: "Ok",
+                    })
+                }
+                else if (data.hasOldData === true) {
+                    let specialtyMarkdown = await db.Specialty.findOne({
+                        where: {
+                            id: data.specialtyId
+                        },
+                        raw: false
+                    })
+
+                    if (specialtyMarkdown) {
+                        specialtyMarkdown.name = data.name;
+                        specialtyMarkdown.image = data.imageBase64;
+                        specialtyMarkdown.descriptionHTML = data.descriptionHTML;
+                        specialtyMarkdown.descriptionMarkdown = data.descriptionMarkdown;
+                        await specialtyMarkdown.save();
+                    }
+                    resolve({
+                        errorCode: 0,
+                        errorMessage: "Ok",
+                    })
+                }
             }
         } catch (error) {
             reject(error)
@@ -63,8 +85,9 @@ let getDetailSpecialtyService = async (idInput, location) => {
                     where: {
                         id: idInput
                     },
-                    attributes: ['descriptionHTML', 'descriptionMarkdown'],
+                    attributes: ['descriptionHTML', 'descriptionMarkdown', 'name', 'id','image'],
                 });
+               
 
                 if (data) {
                     let doctorSpecialty = [];

@@ -27,12 +27,13 @@ const handleUserLogin = (email, password) => {
                 let user = await db.User.findOne({
                     where: { email: email },
                     attributes:
-                        ['email', 'roleId', 'password', 'firstName', 'lastName'],
+                        ['id', 'email', 'roleId', 'password', 'firstName', 'lastName'],
                     raw: true,
 
                 })
                 if (user) {
                     // comparse password
+
                     let check = await bcrypt.compareSync(password, user.password);
                     if (check) {
                         userData.errorCode = 0;

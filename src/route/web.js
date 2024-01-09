@@ -1,9 +1,10 @@
 import express from "express";
-import homeController from "../controller/homeController"
-import userController from "../controller/userController"
-import doctorsController from "../controller/doctorsController"
-import patientController from "../controller/patientController"
-import specialtyController from "../controller/specialtyController"
+import homeController from "../controller/homeController";
+import userController from "../controller/userController";
+import doctorsController from "../controller/doctorsController";
+import patientController from "../controller/patientController";
+import specialtyController from "../controller/specialtyController";
+import clinicController from "../controller/clinicController";
 
 let router = express.Router();
 
@@ -33,6 +34,9 @@ let initWebRoutes = (app) => {
     router.post('/api/save-infor-doctor', doctorsController.postInforDoctors);
     router.get('/api/get-detail-doctor-by-id', doctorsController.getDetailDoctorById);
     router.get('/api/get-all-detail-doctor', doctorsController.getAllDetailDoctor);
+    router.get('/api/get-list-patient', doctorsController.getListPatients);
+    router.post('/api/send-prescription', doctorsController.sendPrescription);
+
     // DOCTOR Controller
 
 
@@ -42,13 +46,26 @@ let initWebRoutes = (app) => {
     router.get('/api/get-extra-infor-doctor-by-id', doctorsController.getExtraInforDoctor);
     router.get('/api/get-profile-doctor-by-id', doctorsController.getProfileDoctor);
 
+
+    // Patient
     router.post('/api/patient-booking', patientController.postBookAppointment);
     router.post('/api/verify-booking', patientController.postVerifyBookAppointment);
     router.get('/api/get-day-booking', patientController.getDateBooking);
 
+
+    // specialty
     router.post('/api/create-specialty', specialtyController.createSpecialty);
     router.get('/api/get-all-specialty', specialtyController.getAllSpecialty);
     router.get('/api/get-detail-specialty', specialtyController.getDetailSpecialty);
+
+    // clinic
+    router.post('/api/create-clinic', clinicController.createClinic);
+    router.get('/api/get-clinic', clinicController.getAllClinic);
+    router.get('/api/get-detail-clinic', clinicController.getDetailClinic);
+
+
+
+
 
     return app.use("/", router);
 }
